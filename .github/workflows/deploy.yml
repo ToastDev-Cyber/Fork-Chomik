@@ -1,9 +1,14 @@
-name: Deploy Fork Chomik Editor
+name: Deploy Scratch Editor
 
 on:
   push:
     branches:
       - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   build-and-deploy:
@@ -26,10 +31,20 @@ jobs:
         env:
           PUBLIC_URL: /${{ github.event.repository.name }}/
 
+      # IMPORTANT: Ensure the path points to the 'build' folder 
+      # inside your scratch-gui package
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'packages/scratch-gui/build' # The path where the build is output
+          path: 'packages/scratch-gui/build' 
 
-      - name: Deploy
+  deploy:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
